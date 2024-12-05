@@ -10,7 +10,7 @@ class TabsCollectionViewController: UIViewController {
     private let viewModel: TabsCollectionViewModel
 
     private var collectionView: UICollectionView!
-    private lazy var toolbarDoneButton = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(done))
+    private lazy var toolbarDoneButton = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(doneButtonDidTouch))
 
     private enum Constants {
         static let cellSpacing: CGFloat = 10
@@ -49,27 +49,36 @@ class TabsCollectionViewController: UIViewController {
             collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
 
-        navigationController?.isToolbarHidden = false
+        navigationController?.setToolbarHidden(false, animated: false)
+        navigationController?.toolbar.isTranslucent = true
         setToolbarItems([
-            UIBarButtonItem(image: UIImage(systemName: "plus"), style: .plain, target: self, action: #selector(addTab)),
+            UIBarButtonItem(image: UIImage(systemName: "plus"), style: .plain, target: self, action: #selector(addTabButtonDidTouch)),
             UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil),
             toolbarDoneButton
         ], animated: false)
-        navigationController?.toolbar.isTranslucent = true
+    }
+
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        navigationController?.toolbar.defaultAppearance()
     }
 
 }
 
 extension TabsCollectionViewController {
 
-    @objc func addTab(_ barButtonItem: UIBarButtonItem) {
+    @objc func addTabButtonDidTouch(_ barButtonItem: UIBarButtonItem) {
         viewModel.addAndSelectTab()
         toolbarDoneButton.isEnabled = viewModel.shouldEnableDoneButton
         collectionView.reloadData()
     }
 
-    @objc func done(_ barButtonItem: UIBarButtonItem) {
-        // TODO: Open last selected tab
+    @objc func doneButtonDidTouch(_ barButtonItem: UIBarButtonItem) {
+        openLastSelectedTab()
+    }
+
+    private func openLastSelectedTab() {
+        navigationController?.pushViewController(BrowserViewController(nibName: nil, bundle: nil), animated: true)
     }
 
 }
@@ -97,7 +106,7 @@ extension TabsCollectionViewController: UICollectionViewDataSource {
 extension TabsCollectionViewController: UICollectionViewDelegate {
 
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        // TODO: Open tab
+        navigationController?.pushViewController(BrowserViewController(nibName: nil, bundle: nil), animated: true)
     }
 
 }
