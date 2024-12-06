@@ -1,0 +1,33 @@
+{
+  "configurations" : [
+    {
+      "id" : "7CAFD4BB-3CB9-4D92-8F38-87FFF6BA37A7",
+      "name" : "Configuration 1",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+
+  },
+  "testTargets" : [
+    {
+      "parallelizable" : false,
+      "target" : {
+        "containerPath" : "container:OrionChallenge.xcodeproj",
+        "identifier" : "F7F726E12CFDB43B0080593D",
+        "name" : "OrionChallengeTests"
+      }
+    },
+    {
+      "enabled" : false,
+      "target" : {
+        "containerPath" : "container:OrionChallenge.xcodeproj",
+        "identifier" : "F7F726EB2CFDB43B0080593D",
+        "name" : "OrionChallengeUITests"
+      }
+    }
+  ],
+  "version" : 1
+}
