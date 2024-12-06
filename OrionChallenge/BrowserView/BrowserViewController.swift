@@ -6,6 +6,10 @@
 import UIKit
 import WebKit
 
+protocol BrowserViewControllerDelegate: AnyObject {
+    func browserViewController(_ browserViewController: BrowserViewController, didUpdateTab tab: BrowserTab, withTitle title: String?, image: UIImage, url: URL?)
+}
+
 class BrowserViewController: UIViewController {
 
     @IBOutlet private weak var webView: WKWebView!
@@ -17,7 +21,9 @@ class BrowserViewController: UIViewController {
     private lazy var homeButton = UIBarButtonItem(image: UIImage(systemName: "house"), style: .plain, target: self, action: #selector(homeButtonDidTouch))
     private lazy var tabSwitcherButton = UIBarButtonItem(image: UIImage(systemName: "square.on.square"), style: .plain, target: self, action: #selector(tabSwitcherButtonDidTouch))
 
-    private let viewModel = BrowserViewModel()
+    weak var delegate: BrowserViewControllerDelegate?
+
+    private let viewModel: BrowserViewModel
 
     private var webViewLoadingObservation: NSKeyValueObservation?
     private var webViewEstimatedProgressObservation: NSKeyValueObservation?
@@ -27,13 +33,22 @@ class BrowserViewController: UIViewController {
     private var lastContentOffset: CGFloat = 0
     private var isChromeCollapsed = false
 
+    init(viewModel: BrowserViewModel) {
+        self.viewModel = viewModel
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
 
         configureWebViewPreferences()
         configureUI()
         configureKeyboard()
-        loadHomePage()
+        loadTab()
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -99,6 +114,13 @@ extension BrowserViewController {
         keyboardObserver.start()
     }
 
+    private func loadTab() {
+        guard let tabURL = viewModel.tab.url else { return }
+        webView.load(URLRequest(url: tabURL))
+        addressBarTextField.isLoading = true
+        addressBarTextField.setSummary(viewModel.addressSummaryForInput(tabURL.absoluteString))
+    }
+
     private func loadHomePage() {
         let homeURL = viewModel.homePageURL()
         webView.load(URLRequest(url: homeURL))
@@ -136,6 +158,8 @@ extension BrowserViewController {
     }
 
     @objc private func tabSwitcherButtonDidTouch(_ barButtonItem: UIBarButtonItem) {
+        let screenshot = webView.screenshot(trimTop: webView.scrollView.adjustedContentInset.top)
+        delegate?.browserViewController(self, didUpdateTab: viewModel.tab, withTitle: webView.title, image: screenshot, url: webView.url)
         navigationController?.popViewController(animated: true)
         _ = addressBarTextField.resignFirstResponder()
     }

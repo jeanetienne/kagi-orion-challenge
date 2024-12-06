@@ -71,6 +71,7 @@ extension TabsCollectionViewController {
         viewModel.addAndSelectTab()
         toolbarDoneButton.isEnabled = viewModel.shouldEnableDoneButton
         collectionView.reloadData()
+        openLastSelectedTab()
     }
 
     @objc func doneButtonDidTouch(_ barButtonItem: UIBarButtonItem) {
@@ -78,7 +79,10 @@ extension TabsCollectionViewController {
     }
 
     private func openLastSelectedTab() {
-        navigationController?.pushViewController(BrowserViewController(nibName: nil, bundle: nil), animated: true)
+        guard let lastSelectedTab = viewModel.getLastSelectedTab() else { return }
+        let viewController = BrowserViewController(viewModel: BrowserViewModel(tab: lastSelectedTab))
+        viewController.delegate = self
+        navigationController?.pushViewController(viewController, animated: true)
     }
 
 }
@@ -106,7 +110,10 @@ extension TabsCollectionViewController: UICollectionViewDataSource {
 extension TabsCollectionViewController: UICollectionViewDelegate {
 
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        navigationController?.pushViewController(BrowserViewController(nibName: nil, bundle: nil), animated: true)
+        let browserTab = viewModel.tab(at: indexPath.item)
+        let viewController = BrowserViewController(viewModel: BrowserViewModel(tab: browserTab))
+        viewController.delegate = self
+        navigationController?.pushViewController(viewController, animated: true)
     }
 
 }
@@ -134,6 +141,15 @@ extension TabsCollectionViewController: UICollectionViewDelegateFlowLayout {
 
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
         return Constants.cellSpacing
+    }
+
+}
+
+extension TabsCollectionViewController: BrowserViewControllerDelegate {
+
+    func browserViewController(_ browserViewController: BrowserViewController, didUpdateTab tab: BrowserTab, withTitle title: String?, image: UIImage, url: URL?) {
+        viewModel.update(tab: tab, withTitle: title, image: image, url: url)
+        collectionView.reloadData()
     }
 
 }

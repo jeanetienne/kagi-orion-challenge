@@ -5,11 +5,6 @@
 
 import UIKit
 
-struct BrowserTab {
-    let title: String
-    let image: UIImage
-}
-
 class TabsCollectionViewModel {
 
     private(set) var tabs: [BrowserTab] = []
@@ -32,7 +27,7 @@ class TabsCollectionViewModel {
     }
 
     func addAndSelectTab() {
-        let tab = BrowserTab(title: "New Tab", image: UIImage(named: "empty_tab")!)
+        let tab = BrowserTab(title: "New Tab", image: UIImage(named: "empty_tab")!, url: URL(string: "https://en.wikipedia.org")!)
         tabs.append(tab)
         lastSelectedTab = tab
     }
@@ -41,6 +36,9 @@ class TabsCollectionViewModel {
         tabs.remove(at: index)
     }
 
-}
+    func update(tab: BrowserTab, withTitle title: String?, image: UIImage, url: URL?) {
+        guard let url else { return }
+        tab.update(title: title ?? url.absoluteString, image: image, url: url)
+    }
 
-extension BrowserTab: Equatable {}
+}

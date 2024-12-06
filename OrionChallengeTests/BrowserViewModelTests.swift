@@ -12,7 +12,7 @@ final class BrowserViewModelTests: XCTestCase {
 
     override func setUp() {
         super.setUp()
-        viewModel = BrowserViewModel()
+        viewModel = BrowserViewModel(tab: BrowserTab(image: UIImage()))
     }
 
     override func tearDown() {
