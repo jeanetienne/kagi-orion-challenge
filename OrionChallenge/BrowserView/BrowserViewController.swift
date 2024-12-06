@@ -33,6 +33,10 @@ class BrowserViewController: UIViewController {
     private var lastContentOffset: CGFloat = 0
     private var isChromeCollapsed = false
 
+    var browsedTab: BrowserTab {
+        return viewModel.tab
+    }
+
     init(viewModel: BrowserViewModel) {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
@@ -77,7 +81,7 @@ extension BrowserViewController {
         webView.scrollView.adjustBottomInsetsForHiddenKeyboard(additionalContentInset: 56)
         addressBarTextField.delegate = self
 
-        self.setToolbarItems([
+        self.parent?.setToolbarItems([
             backwardNavigationButton,
             UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil),
             forwardNavigationButton,

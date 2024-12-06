@@ -69,9 +69,10 @@ extension TabsCollectionViewController {
 
     @objc func addTabButtonDidTouch(_ barButtonItem: UIBarButtonItem) {
         viewModel.addAndSelectTab()
+        openLastSelectedTab()
+
         toolbarDoneButton.isEnabled = viewModel.shouldEnableDoneButton
         collectionView.reloadData()
-        openLastSelectedTab()
     }
 
     @objc func doneButtonDidTouch(_ barButtonItem: UIBarButtonItem) {
@@ -79,10 +80,9 @@ extension TabsCollectionViewController {
     }
 
     private func openLastSelectedTab() {
-        guard let lastSelectedTab = viewModel.getLastSelectedTab() else { return }
-        let viewController = BrowserViewController(viewModel: BrowserViewModel(tab: lastSelectedTab))
-        viewController.delegate = self
-        navigationController?.pushViewController(viewController, animated: true)
+        let pagesContainer = PagesContainerViewController(viewModel: viewModel, initialIndex: viewModel.lastSelectedTabIndex ?? 0)
+        pagesContainer.browserDelegate = self
+        navigationController?.pushViewController(pagesContainer, animated: true)
     }
 
 }
@@ -95,12 +95,13 @@ extension TabsCollectionViewController: UICollectionViewDataSource {
 
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: BrowserTabCollectionViewCell.reuseIdentifier, for: indexPath) as! BrowserTabCollectionViewCell
-        let browserTab = viewModel.tab(at: indexPath.item)
-        cell.configure(with: browserTab) { [self] in
-            viewModel.deleteTab(at: indexPath.item)
-            toolbarDoneButton.isEnabled = viewModel.shouldEnableDoneButton
-            collectionView.deleteItems(at: [indexPath])
-            collectionView.reloadItems(at: [indexPath])
+        if let browserTab = viewModel.tab(at: indexPath.item) {
+            cell.configure(with: browserTab) { [self] in
+                viewModel.deleteTab(at: indexPath.item)
+                toolbarDoneButton.isEnabled = viewModel.shouldEnableDoneButton
+                collectionView.deleteItems(at: [indexPath])
+                collectionView.reloadItems(at: [indexPath])
+            }
         }
         return cell
     }
@@ -110,10 +111,10 @@ extension TabsCollectionViewController: UICollectionViewDataSource {
 extension TabsCollectionViewController: UICollectionViewDelegate {
 
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        let browserTab = viewModel.tab(at: indexPath.item)
-        let viewController = BrowserViewController(viewModel: BrowserViewModel(tab: browserTab))
-        viewController.delegate = self
-        navigationController?.pushViewController(viewController, animated: true)
+        viewModel.selectTab(at: indexPath.item)
+        let pagesContainer = PagesContainerViewController(viewModel: viewModel, initialIndex: indexPath.item)
+        pagesContainer.browserDelegate = self
+        navigationController?.pushViewController(pagesContainer, animated: true)
     }
 
 }
