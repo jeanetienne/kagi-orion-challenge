@@ -119,6 +119,7 @@ class AddressBarTextField: UIView {
         summaryContainerView.isHidden = textField.isFirstResponder
         textField.isHidden = !textField.isFirstResponder
 
+        stopReloadContainerView.isHidden = summaryLabel.text?.isEmpty ?? true
         stopButton.isHidden = !isLoading || textField.isFirstResponder
         reloadButton.isHidden = isLoading || textField.isFirstResponder
     }

@@ -10,6 +10,11 @@ class TabsCollectionViewModel {
     private(set) var tabs: [BrowserTab] = []
     private(set) var lastSelectedTabIndex: Int?
 
+    var lastSelectedTab: BrowserTab? {
+        guard let lastSelectedTabIndex else { return tabs.last }
+        return tabs[safe: lastSelectedTabIndex]
+    }
+
     var shouldEnableDoneButton: Bool {
         return !tabs.isEmpty
     }
@@ -19,7 +24,7 @@ class TabsCollectionViewModel {
     }
 
     func tab(at index: Int) -> BrowserTab? {
-        tabs[safe: index]
+        return tabs[safe: index]
     }
 
     func index(of tab: BrowserTab) -> Int {
@@ -27,8 +32,12 @@ class TabsCollectionViewModel {
     }
 
     func addAndSelectTab() {
-        let tab = BrowserTab(title: "New Tab", image: UIImage(named: "empty_tab")!, url: URL(string: "https://en.wikipedia.org")!)
+        let tab = BrowserTab(title: "New Tab", image: UIImage(named: "empty_tab")!, url: nil)
         tabs.append(tab)
+        selectTab(tab)
+    }
+
+    func selectTab(_ tab: BrowserTab) {
         lastSelectedTabIndex = tabs.firstIndex(of: tab)
     }
 

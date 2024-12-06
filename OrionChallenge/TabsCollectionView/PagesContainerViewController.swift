@@ -5,15 +5,16 @@
 
 import UIKit
 
+protocol PagesContainerViewControllerDelegate: AnyObject {
+    func pagesContainerViewController(_ viewController: PagesContainerViewController, didSelectTab tab: BrowserTab)
+}
+
 class PagesContainerViewController: UIPageViewController {
 
     private let viewModel: TabsCollectionViewModel
     private var initialIndex: Int
 
-    private var currentBrowserViewController: BrowserViewController? {
-        return viewControllers?[initialIndex] as? BrowserViewController
-    }
-
+    weak var pagingDelegate: PagesContainerViewControllerDelegate?
     weak var browserDelegate: BrowserViewControllerDelegate?
 
     init(viewModel: TabsCollectionViewModel, initialIndex: Int) {
@@ -60,6 +61,23 @@ extension PagesContainerViewController: UIPageViewControllerDataSource {
         return makeBrowserViewController(for: index)
     }
 
+    func pageViewController(_ pageViewController: UIPageViewController, didFinishAnimating finished: Bool, previousViewControllers: [UIViewController], transitionCompleted completed: Bool) {
+        guard let currentBrowserViewController = viewControllers?.first as? BrowserViewController else { return }
+        pagingDelegate?.pagesContainerViewController(self, didSelectTab: currentBrowserViewController.browsedTab)
+    }
+
 }
 
 extension PagesContainerViewController: UIPageViewControllerDelegate {}
+
+extension PagesContainerViewController: ZoomTransitionProvider {
+
+    func transitionWillStart() {}
+
+    func transitionDidEnd() {}
+
+    func target() -> any ZoomTransitionTarget {
+        return ZoomTransitionSimpleTarget(image: nil, frame: view.frame)
+    }
+
+}

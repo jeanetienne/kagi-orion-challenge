@@ -65,6 +65,10 @@ class BrowserViewController: UIViewController {
 // MARK: Helpers
 extension BrowserViewController {
 
+    private enum Constants {
+        static let addressBarHeight: CGFloat = 56
+    }
+
     private func configureWebViewPreferences() {
         let preferences = WKWebpagePreferences()
 
@@ -105,13 +109,13 @@ extension BrowserViewController {
                 self.collapseChrome(animated: false)
             }
 
-            self.webView.scrollView.adjustBottomInsetsForKeyboard(ofSize: keyboardSize, additionalContentInset: 56)
+            self.webView.scrollView.adjustBottomInsetsForKeyboard(ofSize: keyboardSize, additionalContentInset: Constants.addressBarHeight)
             self.addressBarBottomConstraint.constant = 10 + self.heightWithinSafeArea(forKeyboardSize: keyboardSize)
 
             self.view.layoutIfNeeded()
         }
         keyboardObserver.willHide = { [unowned self] _ in
-            self.webView.scrollView.adjustBottomInsetsForHiddenKeyboard(additionalContentInset: 56)
+            self.webView.scrollView.adjustBottomInsetsForHiddenKeyboard(additionalContentInset: Constants.addressBarHeight)
             self.addressBarBottomConstraint.constant = 0
             self.view.layoutIfNeeded()
         }
@@ -162,7 +166,7 @@ extension BrowserViewController {
     }
 
     @objc private func tabSwitcherButtonDidTouch(_ barButtonItem: UIBarButtonItem) {
-        let screenshot = webView.screenshot(trimTop: webView.scrollView.adjustedContentInset.top)
+        let screenshot = view.screenshot()
         delegate?.browserViewController(self, didUpdateTab: viewModel.tab, withTitle: webView.title, image: screenshot, url: webView.url)
         navigationController?.popViewController(animated: true)
         _ = addressBarTextField.resignFirstResponder()
@@ -172,7 +176,7 @@ extension BrowserViewController {
 
 extension BrowserViewController: UIScrollViewDelegate {
 
-    private enum Constants {
+    private enum AnimationConstants {
         static let animationDuration: TimeInterval = 0.15
     }
 
@@ -192,10 +196,11 @@ extension BrowserViewController: UIScrollViewDelegate {
     private func collapseChrome(animated: Bool) {
         isChromeCollapsed = true
 
-        self.webView.scrollView.adjustBottomInsetsForHiddenKeyboard(additionalContentInset: 26)
+        _ = addressBarTextField.resignFirstResponder()
+        webView.scrollView.adjustBottomInsetsForHiddenKeyboard(additionalContentInset: 26)
 
         if animated {
-            UIView.animate(withDuration: Constants.animationDuration) { [self] in
+            UIView.animate(withDuration: AnimationConstants.animationDuration) { [self] in
                 addressBarTextField.layoutChangesForCollapse()
                 navigationController?.setToolbarHidden(true, animated: true)
                 view.layoutIfNeeded()
@@ -209,8 +214,8 @@ extension BrowserViewController: UIScrollViewDelegate {
     private func expandChrome() {
         isChromeCollapsed = false
 
-        self.webView.scrollView.adjustBottomInsetsForHiddenKeyboard(additionalContentInset: 56)
-        UIView.animate(withDuration: Constants.animationDuration) { [self] in
+        webView.scrollView.adjustBottomInsetsForHiddenKeyboard(additionalContentInset: 56)
+        UIView.animate(withDuration: AnimationConstants.animationDuration) { [self] in
             addressBarTextField.layoutChangesForExpand()
             navigationController?.setToolbarHidden(false, animated: true)
             view.layoutIfNeeded()
