@@ -166,10 +166,14 @@ extension BrowserViewController {
     }
 
     @objc private func tabSwitcherButtonDidTouch(_ barButtonItem: UIBarButtonItem) {
-        let screenshot = view.screenshot()
-        delegate?.browserViewController(self, didUpdateTab: viewModel.tab, withTitle: webView.title, image: screenshot, url: webView.url)
+        triggerScreenshotUpdate()
         navigationController?.popViewController(animated: true)
         _ = addressBarTextField.resignFirstResponder()
+    }
+
+    func triggerScreenshotUpdate() {
+        let screenshot = view.screenshot()
+        delegate?.browserViewController(self, didUpdateTab: viewModel.tab, withTitle: webView.title, image: screenshot, url: webView.url)
     }
 
 }

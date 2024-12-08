@@ -10,9 +10,13 @@ protocol ZoomTransitionTarget {
     var frame: CGRect { get }
 }
 
+enum ZoomTransitionStyle {
+    case zoomIn, zoomOut, interactive
+}
+
 protocol ZoomTransitionProvider: AnyObject {
-    func transitionWillStart()
-    func transitionDidEnd()
+    func transitionWillStart(style: ZoomTransitionStyle)
+    func transitionDidEnd(style: ZoomTransitionStyle)
     func target() -> ZoomTransitionTarget
 }
 
@@ -120,8 +124,8 @@ extension ZoomTransitionController: UIViewControllerAnimatedTransitioning {
               let toProvider = toViewController as? ZoomTransitionProvider
         else { return }
 
-        fromProvider.transitionWillStart()
-        toProvider.transitionWillStart()
+        fromProvider.transitionWillStart(style: .zoomIn)
+        toProvider.transitionWillStart(style: .zoomIn)
 
         let fromTarget = fromProvider.target()
         let toTarget = toProvider.target()
@@ -153,8 +157,8 @@ extension ZoomTransitionController: UIViewControllerAnimatedTransitioning {
                 toViewController.view.alpha = 1.0
                 transitionView.removeFromSuperview()
                 transitionContext.completeTransition(!transitionContext.transitionWasCancelled)
-                fromProvider.transitionDidEnd()
-                toProvider.transitionDidEnd()
+                fromProvider.transitionDidEnd(style: .zoomIn)
+                toProvider.transitionDidEnd(style: .zoomIn)
             })
     }
 
@@ -167,8 +171,8 @@ extension ZoomTransitionController: UIViewControllerAnimatedTransitioning {
               let toProvider = toViewController as? ZoomTransitionProvider
         else { return }
 
-        fromProvider.transitionWillStart()
-        toProvider.transitionWillStart()
+        fromProvider.transitionWillStart(style: .zoomOut)
+        toProvider.transitionWillStart(style: .zoomOut)
 
         let fromTarget = fromProvider.target()
         let toTarget = toProvider.target()
@@ -188,8 +192,8 @@ extension ZoomTransitionController: UIViewControllerAnimatedTransitioning {
         UIView.animate(
             withDuration: transitionDuration(using: transitionContext),
             delay: 0,
-            usingSpringWithDamping: 0.99,
-            initialSpringVelocity: 6,
+            usingSpringWithDamping: 0.9,
+            initialSpringVelocity: 4,
             animations: {
                 animations()
                 transitionView.layer.cornerRadius = Constants.smallCornerRadius
@@ -198,8 +202,8 @@ extension ZoomTransitionController: UIViewControllerAnimatedTransitioning {
             }, completion: { completed in
                 transitionView.removeFromSuperview()
                 transitionContext.completeTransition(!transitionContext.transitionWasCancelled)
-                fromProvider.transitionDidEnd()
-                toProvider.transitionDidEnd()
+                fromProvider.transitionDidEnd(style: .zoomOut)
+                toProvider.transitionDidEnd(style: .zoomOut)
             })
     }
 
@@ -243,8 +247,8 @@ extension ZoomTransitionController: UIViewControllerInteractiveTransitioning {
               let toProvider = toViewController as? ZoomTransitionProvider
         else { return }
 
-        fromProvider.transitionWillStart()
-        toProvider.transitionWillStart()
+        fromProvider.transitionWillStart(style: .interactive)
+        toProvider.transitionWillStart(style: .interactive)
 
         let fromTarget = fromProvider.target()
         let toTarget = toProvider.target()
@@ -312,8 +316,8 @@ extension ZoomTransitionController: UIViewControllerInteractiveTransitioning {
                         transitionContext.completeTransition(!transitionContext.transitionWasCancelled)
                         self.interactiveTransitionView = nil
                         self.transitionContext = nil
-                        fromProvider.transitionDidEnd()
-                        toProvider.transitionDidEnd()
+                        fromProvider.transitionDidEnd(style: .interactive)
+                        toProvider.transitionDidEnd(style: .interactive)
                     })
                 return
             }
@@ -332,8 +336,8 @@ extension ZoomTransitionController: UIViewControllerInteractiveTransitioning {
                     transitionContext.completeTransition(!transitionContext.transitionWasCancelled)
                     self.interactiveTransitionView = nil
                     self.transitionContext = nil
-                    fromProvider.transitionDidEnd()
-                    toProvider.transitionDidEnd()
+                    fromProvider.transitionDidEnd(style: .interactive)
+                    toProvider.transitionDidEnd(style: .interactive)
                 })
         }
     }

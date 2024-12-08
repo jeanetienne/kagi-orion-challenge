@@ -177,9 +177,9 @@ extension TabsCollectionViewController: BrowserViewControllerDelegate {
 
 extension TabsCollectionViewController: ZoomTransitionProvider {
 
-    func transitionWillStart() {}
+    func transitionWillStart(style: ZoomTransitionStyle) {}
 
-    func transitionDidEnd() {}
+    func transitionDidEnd(style: ZoomTransitionStyle) {}
 
     func target() -> any ZoomTransitionTarget {
         guard let lastSelectedTabIndex = viewModel.lastSelectedTabIndex else {

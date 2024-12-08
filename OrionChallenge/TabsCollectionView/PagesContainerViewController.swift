@@ -72,9 +72,14 @@ extension PagesContainerViewController: UIPageViewControllerDelegate {}
 
 extension PagesContainerViewController: ZoomTransitionProvider {
 
-    func transitionWillStart() {}
+    func transitionWillStart(style: ZoomTransitionStyle) {
+        if style == .interactive {
+            guard let currentBrowserViewController = viewControllers?.first as? BrowserViewController else { return }
+            currentBrowserViewController.triggerScreenshotUpdate()
+        }
+    }
 
-    func transitionDidEnd() {}
+    func transitionDidEnd(style: ZoomTransitionStyle) {}
 
     func target() -> any ZoomTransitionTarget {
         return ZoomTransitionSimpleTarget(image: nil, frame: view.frame)
