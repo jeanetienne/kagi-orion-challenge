@@ -293,7 +293,7 @@
 				DEVELOPMENT_TEAM = N44EJ7YB22;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = OrionChallenge/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "Orion CC";
+				INFOPLIST_KEY_CFBundleDisplayName = Orion;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
@@ -326,7 +326,7 @@
 				DEVELOPMENT_TEAM = N44EJ7YB22;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = OrionChallenge/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "Orion CC";
+				INFOPLIST_KEY_CFBundleDisplayName = Orion;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";

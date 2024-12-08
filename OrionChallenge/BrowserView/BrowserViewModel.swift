@@ -13,7 +13,7 @@ class BrowserViewModel {
     }
 
     private let homeURL = URL(string: "https://kagi.com")!
-    private let searchBaseURL = "https://kagi.com/search?q="
+    private let searchBaseURL = "https://en.wikipedia.org/w/index.php?title=Special:Search&search="
 
     let tab: BrowserTab
 
