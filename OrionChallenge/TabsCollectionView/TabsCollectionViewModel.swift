@@ -31,9 +31,13 @@ class TabsCollectionViewModel {
         return tabs.firstIndex(of: tab) ?? 0
     }
 
-    func addAndSelectTab() {
+    func addAndSelectTab(after referenceTab: BrowserTab? = nil) {
         let tab = BrowserTab(title: "New Tab", image: UIImage(named: "empty_tab")!, url: nil)
-        tabs.append(tab)
+        if let referenceTab, let index = tabs.firstIndex(of: referenceTab) {
+            tabs.insert(tab, at: index + 1)
+        } else {
+            tabs.append(tab)
+        }
         selectTab(tab)
     }
 

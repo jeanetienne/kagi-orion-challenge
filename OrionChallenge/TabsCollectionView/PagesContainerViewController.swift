@@ -6,7 +6,9 @@
 import UIKit
 
 protocol PagesContainerViewControllerDelegate: AnyObject {
+    func pagesContainerViewController(_ viewController: PagesContainerViewController, didAddNewTabAfter tab: BrowserTab)
     func pagesContainerViewController(_ viewController: PagesContainerViewController, didSelectTab tab: BrowserTab)
+    func pagesContainerViewController(_ viewController: PagesContainerViewController, didUpdateTab tab: BrowserTab, withTitle title: String?, image: UIImage, url: URL?)
 }
 
 class PagesContainerViewController: UIPageViewController {
@@ -15,7 +17,6 @@ class PagesContainerViewController: UIPageViewController {
     private var initialIndex: Int
 
     weak var pagingDelegate: PagesContainerViewControllerDelegate?
-    weak var browserDelegate: BrowserViewControllerDelegate?
 
     init(viewModel: TabsCollectionViewModel, initialIndex: Int) {
         self.viewModel = viewModel
@@ -39,7 +40,7 @@ class PagesContainerViewController: UIPageViewController {
     private func makeBrowserViewController(for index: Int) -> BrowserViewController? {
         guard let tab = viewModel.tab(at: index) else { return nil }
         let browserVC = BrowserViewController(viewModel: BrowserViewModel(tab: tab))
-        browserVC.delegate = browserDelegate
+        browserVC.delegate = self
         return browserVC
     }
 
@@ -69,6 +70,21 @@ extension PagesContainerViewController: UIPageViewControllerDataSource {
 }
 
 extension PagesContainerViewController: UIPageViewControllerDelegate {}
+
+extension PagesContainerViewController: BrowserViewControllerDelegate {
+
+    func browserViewController(_ viewController: BrowserViewController, didAddNewTabAfter tab: BrowserTab) {
+        pagingDelegate?.pagesContainerViewController(self, didAddNewTabAfter: tab)
+        if let viewController = makeBrowserViewController(for: viewModel.index(of: tab) + 1) {
+            setViewControllers([viewController], direction: .forward, animated: true, completion: nil)
+        }
+    }
+
+    func browserViewController(_ viewController: BrowserViewController, didUpdateTab tab: BrowserTab, withTitle title: String?, image: UIImage, url: URL?) {
+        pagingDelegate?.pagesContainerViewController(self, didUpdateTab: tab, withTitle: title, image: image, url: url)
+    }
+
+}
 
 extension PagesContainerViewController: ZoomTransitionProvider {
 

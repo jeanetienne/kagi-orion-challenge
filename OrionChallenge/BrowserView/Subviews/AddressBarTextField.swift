@@ -79,6 +79,10 @@ class AddressBarTextField: UIView {
         return textField.resignFirstResponder()
     }
 
+    override func becomeFirstResponder() -> Bool {
+        return textField.becomeFirstResponder()
+    }
+
     private func setupUI() {
         self.backgroundColor = .tertiarySystemFill
         self.layer.cornerCurve = .continuous

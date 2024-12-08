@@ -70,6 +70,10 @@ class TabsCollectionViewController: UIViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         navigationController?.toolbar.defaultAppearance()
+        updateButtons()
+        if viewModel.tabs.isEmpty {
+            addTab(animated: false)
+        }
     }
 
 }
@@ -77,22 +81,29 @@ class TabsCollectionViewController: UIViewController {
 extension TabsCollectionViewController {
 
     @objc func addTabButtonDidTouch(_ barButtonItem: UIBarButtonItem) {
-        viewModel.addAndSelectTab()
-        openLastSelectedTab()
-
-        toolbarDoneButton.isEnabled = viewModel.shouldEnableDoneButton
-        collectionView.reloadData()
+        addTab(animated: true)
     }
 
     @objc func doneButtonDidTouch(_ barButtonItem: UIBarButtonItem) {
-        openLastSelectedTab()
+        openLastSelectedTab(animated: true)
     }
 
-    private func openLastSelectedTab() {
+    private func addTab(animated: Bool) {
+        viewModel.addAndSelectTab()
+        openLastSelectedTab(animated: animated)
+
+        updateButtons()
+        collectionView.reloadData()
+    }
+
+    private func openLastSelectedTab(animated: Bool) {
         let pagesContainer = PagesContainerViewController(viewModel: viewModel, initialIndex: viewModel.lastSelectedTabIndex ?? 0)
         pagesContainer.pagingDelegate = self
-        pagesContainer.browserDelegate = self
-        navigationController?.pushViewController(pagesContainer, animated: true)
+        navigationController?.pushViewController(pagesContainer, animated: animated)
+    }
+
+    private func updateButtons() {
+        toolbarDoneButton.isEnabled = viewModel.shouldEnableDoneButton
     }
 
 }
@@ -109,7 +120,7 @@ extension TabsCollectionViewController: UICollectionViewDataSource {
             let widthRatio = UIApplication.shared.safeAreaTopInset / view.frame.width
             cell.configure(with: browserTab, widthRatio: widthRatio) { [self] in
                 viewModel.deleteTab(at: indexPath.item)
-                toolbarDoneButton.isEnabled = viewModel.shouldEnableDoneButton
+                updateButtons()
                 collectionView.deleteItems(at: [indexPath])
                 collectionView.reloadItems(at: [indexPath])
             }
@@ -125,7 +136,6 @@ extension TabsCollectionViewController: UICollectionViewDelegate {
         viewModel.selectTab(at: indexPath.item)
         let pagesContainer = PagesContainerViewController(viewModel: viewModel, initialIndex: indexPath.item)
         pagesContainer.pagingDelegate = self
-        pagesContainer.browserDelegate = self
         navigationController?.pushViewController(pagesContainer, animated: true)
     }
 
@@ -160,15 +170,17 @@ extension TabsCollectionViewController: UICollectionViewDelegateFlowLayout {
 
 extension TabsCollectionViewController: PagesContainerViewControllerDelegate {
 
+    func pagesContainerViewController(_ viewController: PagesContainerViewController, didAddNewTabAfter tab: BrowserTab) {
+        viewModel.addAndSelectTab(after: tab)
+        updateButtons()
+        collectionView.reloadData()
+    }
+
     func pagesContainerViewController(_ viewController: PagesContainerViewController, didSelectTab tab: BrowserTab) {
         viewModel.selectTab(tab)
     }
 
-}
-
-extension TabsCollectionViewController: BrowserViewControllerDelegate {
-
-    func browserViewController(_ browserViewController: BrowserViewController, didUpdateTab tab: BrowserTab, withTitle title: String?, image: UIImage, url: URL?) {
+    func pagesContainerViewController(_ viewController: PagesContainerViewController, didUpdateTab tab: BrowserTab, withTitle title: String?, image: UIImage, url: URL?) {
         viewModel.update(tab: tab, withTitle: title, image: image, url: url)
         collectionView.reloadData()
     }

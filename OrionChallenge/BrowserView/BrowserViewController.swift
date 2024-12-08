@@ -7,7 +7,8 @@ import UIKit
 import WebKit
 
 protocol BrowserViewControllerDelegate: AnyObject {
-    func browserViewController(_ browserViewController: BrowserViewController, didUpdateTab tab: BrowserTab, withTitle title: String?, image: UIImage, url: URL?)
+    func browserViewController(_ viewController: BrowserViewController, didAddNewTabAfter tab: BrowserTab)
+    func browserViewController(_ viewController: BrowserViewController, didUpdateTab tab: BrowserTab, withTitle title: String?, image: UIImage, url: URL?)
 }
 
 class BrowserViewController: UIViewController {
@@ -18,6 +19,7 @@ class BrowserViewController: UIViewController {
 
     private lazy var backwardNavigationButton = UIBarButtonItem(image: UIImage(systemName: "chevron.backward"), style: .plain, target: self, action: #selector(backwardNavigationButtonDidTouch))
     private lazy var forwardNavigationButton = UIBarButtonItem(image: UIImage(systemName: "chevron.forward"), style: .plain, target: self, action: #selector(forwardNavigationButtonDidTouch))
+    private lazy var addTabButton = UIBarButtonItem(image: UIImage(systemName: "plus.square.on.square"), style: .plain, target: self, action: #selector(addTabButtonDidTouch))
     private lazy var homeButton = UIBarButtonItem(image: UIImage(systemName: "house"), style: .plain, target: self, action: #selector(homeButtonDidTouch))
     private lazy var tabSwitcherButton = UIBarButtonItem(image: UIImage(systemName: "square.on.square"), style: .plain, target: self, action: #selector(tabSwitcherButtonDidTouch))
 
@@ -58,6 +60,26 @@ class BrowserViewController: UIViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         navigationController?.toolbar.browserAppearance()
+
+        if viewModel.tab.url == nil {
+            _ = addressBarTextField.becomeFirstResponder()
+        }
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+
+        self.parent?.setToolbarItems([
+            backwardNavigationButton,
+            UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil),
+            forwardNavigationButton,
+            UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil),
+            addTabButton,
+            UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil),
+            homeButton,
+            UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil),
+            tabSwitcherButton
+        ], animated: false)
     }
 
 }
@@ -83,17 +105,12 @@ extension BrowserViewController {
         webView.allowsBackForwardNavigationGestures = true
         webView.scrollView.automaticallyAdjustsScrollIndicatorInsets = true
         webView.scrollView.adjustBottomInsetsForHiddenKeyboard(additionalContentInset: 56)
-        addressBarTextField.delegate = self
+        webView.backgroundColor = .systemBackground
+        if #available(iOS 15.0, *) {
+            webView.underPageBackgroundColor = .systemBackground
+        }
 
-        self.parent?.setToolbarItems([
-            backwardNavigationButton,
-            UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil),
-            forwardNavigationButton,
-            UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil),
-            homeButton,
-            UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil),
-            tabSwitcherButton
-        ], animated: false)
+        addressBarTextField.delegate = self
 
         webViewEstimatedProgressObservation = observe(\.webView.estimatedProgress) { viewController, observedProperty in
             viewController.addressBarTextField.loadingProgress = viewController.webView.estimatedProgress
@@ -157,6 +174,11 @@ extension BrowserViewController {
         if webView.canGoForward {
             webView.goForward()
         }
+        _ = addressBarTextField.resignFirstResponder()
+    }
+
+    @objc private func addTabButtonDidTouch(_ barButtonItem: UIBarButtonItem) {
+        delegate?.browserViewController(self, didAddNewTabAfter: browsedTab)
         _ = addressBarTextField.resignFirstResponder()
     }
 
