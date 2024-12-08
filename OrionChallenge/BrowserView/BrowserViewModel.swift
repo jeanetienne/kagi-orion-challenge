@@ -15,6 +15,12 @@ class BrowserViewModel {
     private let homeURL = URL(string: "https://kagi.com")!
     private let searchBaseURL = "https://kagi.com/search?q="
 
+    let tab: BrowserTab
+
+    init(tab: BrowserTab) {
+        self.tab = tab
+    }
+
     func homePageURL() -> URL {
         return homeURL
     }

@@ -5,15 +5,15 @@
 
 import UIKit
 
-struct BrowserTab {
-    let title: String
-    let image: UIImage
-}
-
 class TabsCollectionViewModel {
 
     private(set) var tabs: [BrowserTab] = []
-    private var lastSelectedTab: BrowserTab?
+    private(set) var lastSelectedTabIndex: Int?
+
+    var lastSelectedTab: BrowserTab? {
+        guard let lastSelectedTabIndex else { return tabs.last }
+        return tabs[safe: lastSelectedTabIndex]
+    }
 
     var shouldEnableDoneButton: Bool {
         return !tabs.isEmpty
@@ -23,24 +23,39 @@ class TabsCollectionViewModel {
         self.tabs = tabs
     }
 
-    func tab(at index: Int) -> BrowserTab {
-        tabs[index]
+    func tab(at index: Int) -> BrowserTab? {
+        return tabs[safe: index]
     }
 
-    func getLastSelectedTab() -> BrowserTab? {
-        return lastSelectedTab ?? tabs.first
+    func index(of tab: BrowserTab) -> Int {
+        return tabs.firstIndex(of: tab) ?? 0
     }
 
-    func addAndSelectTab() {
-        let tab = BrowserTab(title: "New Tab", image: UIImage(named: "empty_tab")!)
-        tabs.append(tab)
-        lastSelectedTab = tab
+    func addAndSelectTab(after referenceTab: BrowserTab? = nil) {
+        let tab = BrowserTab(title: "New Tab", image: UIImage(named: "empty_tab")!, url: nil)
+        if let referenceTab, let index = tabs.firstIndex(of: referenceTab) {
+            tabs.insert(tab, at: index + 1)
+        } else {
+            tabs.append(tab)
+        }
+        selectTab(tab)
+    }
+
+    func selectTab(_ tab: BrowserTab) {
+        lastSelectedTabIndex = tabs.firstIndex(of: tab)
+    }
+
+    func selectTab(at index: Int) {
+        lastSelectedTabIndex = index
     }
 
     func deleteTab(at index: Int) {
         tabs.remove(at: index)
     }
 
-}
+    func update(tab: BrowserTab, withTitle title: String?, image: UIImage, url: URL?) {
+        guard let url else { return }
+        tab.update(title: title ?? url.absoluteString, image: image, url: url)
+    }
 
-extension BrowserTab: Equatable {}
+}

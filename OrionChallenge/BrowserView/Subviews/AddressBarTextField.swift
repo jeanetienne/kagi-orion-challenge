@@ -79,6 +79,10 @@ class AddressBarTextField: UIView {
         return textField.resignFirstResponder()
     }
 
+    override func becomeFirstResponder() -> Bool {
+        return textField.becomeFirstResponder()
+    }
+
     private func setupUI() {
         self.backgroundColor = .tertiarySystemFill
         self.layer.cornerCurve = .continuous
@@ -119,6 +123,7 @@ class AddressBarTextField: UIView {
         summaryContainerView.isHidden = textField.isFirstResponder
         textField.isHidden = !textField.isFirstResponder
 
+        stopReloadContainerView.isHidden = summaryLabel.text?.isEmpty ?? true
         stopButton.isHidden = !isLoading || textField.isFirstResponder
         reloadButton.isHidden = isLoading || textField.isFirstResponder
     }

@@ -105,6 +105,7 @@
                 <outlet property="iconImageView" destination="eGl-sL-tag" id="rZX-lv-Thn"/>
                 <outlet property="imageContainer" destination="3tl-G3-gj1" id="xAW-U6-shb"/>
                 <outlet property="imageView" destination="i6t-e0-qO2" id="p88-g8-UfA"/>
+                <outlet property="imageViewTopConstraint" destination="CBX-Cg-Pgc" id="wlg-6e-6Sh"/>
                 <outlet property="titleLabel" destination="6qa-VK-NgK" id="ysw-fB-tnC"/>
             </connections>
             <point key="canvasLocation" x="33.587786259541986" y="-89.436619718309871"/>

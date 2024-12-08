@@ -40,13 +40,13 @@ class TabsCollectionViewModelTests: XCTestCase {
         let tab = BrowserTab(title: "Last Selected", image: UIImage())
         let viewModel = TabsCollectionViewModel(tabs: [tab])
         viewModel.addAndSelectTab()
-        XCTAssertEqual(viewModel.getLastSelectedTab()?.title, "New Tab")
+        XCTAssertEqual(viewModel.lastSelectedTab?.title, "New Tab")
     }
 
     func test_getLastSelectedTab_returns_first_tab_when_last_not_set() {
         let tab = BrowserTab(title: "First Tab", image: UIImage())
         let viewModel = TabsCollectionViewModel(tabs: [tab])
-        XCTAssertEqual(viewModel.getLastSelectedTab(), tab)
+        XCTAssertEqual(viewModel.lastSelectedTab, tab)
     }
 
     func test_addAndSelectTab_adds_new_tab() {
@@ -58,7 +58,7 @@ class TabsCollectionViewModelTests: XCTestCase {
     func test_addAndSelectTab_sets_last_selected_tab() {
         let viewModel = TabsCollectionViewModel()
         viewModel.addAndSelectTab()
-        XCTAssertEqual(viewModel.getLastSelectedTab()?.title, "New Tab")
+        XCTAssertEqual(viewModel.lastSelectedTab?.title, "New Tab")
     }
 
     func test_deleteTab_removes_tab_at_index() {

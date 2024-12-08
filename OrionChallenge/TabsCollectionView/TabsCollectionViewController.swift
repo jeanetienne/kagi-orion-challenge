@@ -8,6 +8,7 @@ import UIKit
 class TabsCollectionViewController: UIViewController {
 
     private let viewModel: TabsCollectionViewModel
+    private var transitionController: ZoomTransitionController?
 
     private var collectionView: UICollectionView!
     private lazy var toolbarDoneButton = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(doneButtonDidTouch))
@@ -56,11 +57,23 @@ class TabsCollectionViewController: UIViewController {
             UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil),
             toolbarDoneButton
         ], animated: false)
+
+        if let navigationController {
+            transitionController = ZoomTransitionController(
+                navigationController: navigationController,
+                safeAreaTopInset: UIApplication.shared.safeAreaTopInset,
+                screenSize: view.frame.size
+            )
+        }
     }
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         navigationController?.toolbar.defaultAppearance()
+        updateButtons()
+        if viewModel.tabs.isEmpty {
+            addTab(animated: false)
+        }
     }
 
 }
@@ -68,17 +81,29 @@ class TabsCollectionViewController: UIViewController {
 extension TabsCollectionViewController {
 
     @objc func addTabButtonDidTouch(_ barButtonItem: UIBarButtonItem) {
-        viewModel.addAndSelectTab()
-        toolbarDoneButton.isEnabled = viewModel.shouldEnableDoneButton
-        collectionView.reloadData()
+        addTab(animated: true)
     }
 
     @objc func doneButtonDidTouch(_ barButtonItem: UIBarButtonItem) {
-        openLastSelectedTab()
+        openLastSelectedTab(animated: true)
     }
 
-    private func openLastSelectedTab() {
-        navigationController?.pushViewController(BrowserViewController(nibName: nil, bundle: nil), animated: true)
+    private func addTab(animated: Bool) {
+        viewModel.addAndSelectTab()
+        openLastSelectedTab(animated: animated)
+
+        updateButtons()
+        collectionView.reloadData()
+    }
+
+    private func openLastSelectedTab(animated: Bool) {
+        let pagesContainer = PagesContainerViewController(viewModel: viewModel, initialIndex: viewModel.lastSelectedTabIndex ?? 0)
+        pagesContainer.pagingDelegate = self
+        navigationController?.pushViewController(pagesContainer, animated: animated)
+    }
+
+    private func updateButtons() {
+        toolbarDoneButton.isEnabled = viewModel.shouldEnableDoneButton
     }
 
 }
@@ -91,12 +116,14 @@ extension TabsCollectionViewController: UICollectionViewDataSource {
 
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: BrowserTabCollectionViewCell.reuseIdentifier, for: indexPath) as! BrowserTabCollectionViewCell
-        let browserTab = viewModel.tab(at: indexPath.item)
-        cell.configure(with: browserTab) { [self] in
-            viewModel.deleteTab(at: indexPath.item)
-            toolbarDoneButton.isEnabled = viewModel.shouldEnableDoneButton
-            collectionView.deleteItems(at: [indexPath])
-            collectionView.reloadItems(at: [indexPath])
+        if let browserTab = viewModel.tab(at: indexPath.item) {
+            let widthRatio = UIApplication.shared.safeAreaTopInset / view.frame.width
+            cell.configure(with: browserTab, widthRatio: widthRatio) { [self] in
+                viewModel.deleteTab(at: indexPath.item)
+                updateButtons()
+                collectionView.deleteItems(at: [indexPath])
+                collectionView.reloadItems(at: [indexPath])
+            }
         }
         return cell
     }
@@ -106,7 +133,10 @@ extension TabsCollectionViewController: UICollectionViewDataSource {
 extension TabsCollectionViewController: UICollectionViewDelegate {
 
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        navigationController?.pushViewController(BrowserViewController(nibName: nil, bundle: nil), animated: true)
+        viewModel.selectTab(at: indexPath.item)
+        let pagesContainer = PagesContainerViewController(viewModel: viewModel, initialIndex: indexPath.item)
+        pagesContainer.pagingDelegate = self
+        navigationController?.pushViewController(pagesContainer, animated: true)
     }
 
 }
@@ -138,10 +168,79 @@ extension TabsCollectionViewController: UICollectionViewDelegateFlowLayout {
 
 }
 
+extension TabsCollectionViewController: PagesContainerViewControllerDelegate {
+
+    func pagesContainerViewController(_ viewController: PagesContainerViewController, didAddNewTabAfter tab: BrowserTab) {
+        viewModel.addAndSelectTab(after: tab)
+        updateButtons()
+        collectionView.reloadData()
+    }
+
+    func pagesContainerViewController(_ viewController: PagesContainerViewController, didSelectTab tab: BrowserTab) {
+        viewModel.selectTab(tab)
+    }
+
+    func pagesContainerViewController(_ viewController: PagesContainerViewController, didUpdateTab tab: BrowserTab, withTitle title: String?, image: UIImage, url: URL?) {
+        viewModel.update(tab: tab, withTitle: title, image: image, url: url)
+        collectionView.reloadData()
+    }
+
+}
+
+extension TabsCollectionViewController: ZoomTransitionProvider {
+
+    func transitionWillStart(style: ZoomTransitionStyle) {}
+
+    func transitionDidEnd(style: ZoomTransitionStyle) {}
+
+    func target() -> any ZoomTransitionTarget {
+        guard let lastSelectedTabIndex = viewModel.lastSelectedTabIndex else {
+            return ZoomTransitionSimpleTarget(image: nil, frame: .defaultCellFrame)
+        }
+
+        let image = viewModel.lastSelectedTab?.image
+        let frame = frameForCell(at: IndexPath(item: lastSelectedTabIndex, section: 0))
+
+        return ZoomTransitionSimpleTarget(image: image, frame: frame)
+    }
+
+    private func frameForCell(at indexPath: IndexPath) -> CGRect {
+        let visibleCells = collectionView.indexPathsForVisibleItems
+
+        if !visibleCells.contains(indexPath) {
+            collectionView.scrollToItem(at: indexPath, at: .centeredVertically, animated: false)
+            collectionView.reloadItems(at: collectionView.indexPathsForVisibleItems)
+            collectionView.layoutIfNeeded()
+
+            guard let cell = (collectionView.cellForItem(at: indexPath) as? BrowserTabCollectionViewCell) else {
+                return .defaultCellFrame
+            }
+            return cell.convert(cell.frameForTransition, to: view)
+        } else {
+            guard let cell = (collectionView.cellForItem(at: indexPath) as? BrowserTabCollectionViewCell) else {
+                return .defaultCellFrame
+            }
+            return cell.convert(cell.frameForTransition, to: view)
+        }
+    }
+
+}
+
 fileprivate extension BrowserTabCollectionViewCell {
 
-    func configure(with browserTab: BrowserTab, closeAction: @escaping (() -> Void)) {
-        self.configure(image: browserTab.image, title: browserTab.title, icon: nil, closeAction: closeAction)
+    func configure(with browserTab: BrowserTab, widthRatio: CGFloat, closeAction: @escaping (() -> Void)) {
+        self.configure(image: browserTab.image, title: browserTab.title, icon: nil, widthRatio: widthRatio, closeAction: closeAction)
     }
+
+}
+
+fileprivate extension CGRect {
+
+    static let defaultCellFrame = CGRect(
+        x: UIScreen.main.bounds.midX - 50,
+        y: UIScreen.main.bounds.midY - 100,
+        width: 100,
+        height: 200
+    )
 
 }
